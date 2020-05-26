@@ -1,46 +1,59 @@
 #include <M5Stack.h>
 #include <WiFi.h>
-#include "AlertLed.h"
-#include "DataPush.h"
+#include "Account.h"
 #include "Co2Sensor.h"
+#include "ConfigStore.h"
 
 #define JST (3600L * 9 ) // +9:00 JST
 
-AlertLed led;
-DataPush dp;
-Co2Sensor co2sensor;
-unsigned int cur_time;
+Account _account;
+Co2Sensor _co2sensor;
+unsigned int _cur_time;
 struct tm _tm;
+ConfigStore _config;
 
 void setup(){
   // Initialize the M5Stack object
   M5.begin();
   Serial.begin(9600);
-  led.setup();
-  dp.setupConnection();
+  _config.setup();
+//  _led.setup();
   configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
-  cur_time = _timestamp();
-  co2sensor.setup();
+  _cur_time = _timestamp();
+  _co2sensor.setup();
 }
 
 // the loop routine runs over and over again forever 
 void loop() {
-  cur_time = _timestamp();
-  bool bSampling = co2sensor.isToUpdate(cur_time);
-  //led.update();
+  M5.update();
+  _config.update();
+  bool samplingResult = false;
+  //update basic issue
+  _cur_time = _timestamp();
+  _account.update(_cur_time);
+  bool bSampling = _co2sensor.isToUpdate(_cur_time);
+
+  //sensor
   if( bSampling )
   {
-    co2sensor.sample(cur_time);
+    samplingResult = _co2sensor.sample(_cur_time, _config.voltage_adjust());
     M5.Lcd.clear(BLACK);
   }
-  drawTimestamp();
-  co2sensor.drawSensorValue();
-  dp.showWiFiInfo();
-  if ( bSampling ){
+
+  //draw stuffs
+  if(!_config.isConfigMode())
+  {
+    drawTimestamp();
+    _co2sensor.drawSensorValue();
+  }
+  _config.drawConfig();
+
+  //update to server
+  if ( samplingResult ){
     String today = String(_tm.tm_year + 1900);
     today += (_tm.tm_mon < 10 ) ? "0" + String(_tm.tm_mon+1) : String(_tm.tm_mon+1);
     today += (_tm.tm_mday < 10 ) ? "0" + String(_tm.tm_mday) : String(_tm.tm_mday);
-    dp.patchIfRequired(today, cur_time, co2sensor.getConcentration());
+    _account.patchIfRequired(today, _cur_time, _co2sensor.getConcentration(), _config);
     //Serial.println(payload);
   }
 }

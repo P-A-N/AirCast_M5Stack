@@ -1,7 +1,7 @@
 #ifndef CO2_SENSOR
 #define CO2_SENSOR
 
-#define ADC_PIN 35
+#define ADC_PIN 36
 
 class Co2Sensor
 {
@@ -18,14 +18,16 @@ public:
 
   bool isToUpdate(unsigned int cur_time)
   {
+    if(_sampled_time == 0) _sampled_time = cur_time;
     return cur_time - _sampled_time > _interval;
   }
 
-  void sample(unsigned int cur_time)
+  bool sample(unsigned int cur_time, float adjustValue)
   {
-    
+    sensor_worked = false;
     int mv = analogRead(ADC_PIN);
-    vOut = mv / 4095.0 * 3.3 + 0.1132;
+    vOut = mv / 4095.0 * 3.3 + 0.1132 + adjustValue;
+    _sampled_time = cur_time; 
     if( vOut < 0 ) _status = FAULT;
     else if( vOut < 0.4 ) _status = PRE_HEATING;
     else {
@@ -38,23 +40,25 @@ public:
       }
       else
       {
-        if(concentration == 0) concentration = tmp;
-        else 
+        if(tmp == 0) concentration = tmp;
+        else if(abs(tmp - concentration) < 1000 && tmp < 2000)
         {
           concentration = tmp + (concentration - tmp ) * filterVal; //lowpass filter
+          sensor_worked = true;
         }
       }
-      _sampled_time = cur_time;  
+      return sensor_worked;
     }
   }
   
-  void drawSensorValue()
+  void drawSensorValue() const
   {
     //Serial.println( cur_time - _sampled_time );
     M5.Lcd.setTextSize(5);
     String outStr;
     if( _status == FAULT ) outStr = "FAULT";
-    else if( _status == PRE_HEATING ) outStr = "PRE_HEATING";
+    else if ( !sensor_worked ) outStr = "KEEP WAIT";
+    else if( _status == PRE_HEATING ) outStr = "HEATING";
     else outStr = String(concentration) + "ppm";
     M5.Lcd.setCursor( 10, 80 );
     M5.Lcd.println(outStr);
@@ -76,6 +80,7 @@ public:
     float vOut;
     float filterVal = 0.1;
     float concentration;
+    bool sensor_worked;
     
 };
 #endif
