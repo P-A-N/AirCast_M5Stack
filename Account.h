@@ -26,7 +26,7 @@ public:
     }
   }
 
-  bool patchIfRequired(String date, unsigned int timestamp, float co2data, ConfigStore& config, int responseCode)
+  bool patchIfRequired(String date, unsigned int timestamp, float co2data, ConfigStore& config, int& responseCode)
   {
     bool required = timestamp > last_patch_time + patch_interval;
     if(required && config.isSendToCloud())
