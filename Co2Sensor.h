@@ -41,7 +41,7 @@ public:
       else
       {
         if(tmp == 0) concentration = tmp;
-        else if(abs(tmp - concentration) < 1000 && tmp < 2000)
+        else //if(abs(tmp - concentration) < 1000 && tmp < 2000)
         {
           concentration = tmp + (concentration - tmp ) * filterVal; //lowpass filter
           sensor_worked = true;

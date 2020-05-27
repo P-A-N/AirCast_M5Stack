@@ -80,6 +80,10 @@ public:
     //http.addHeader("Authorization", "Bearer " + token);
     String param = _data;
     int responseCode = http.PATCH(param);
+    
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.setCursor( 280, 10 );
+    M5.Lcd.printf("%d", responseCode);
     if( responseCode > 0 ) 
     {     
       payload = http.getString(); 
