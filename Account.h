@@ -26,12 +26,17 @@ public:
     }
   }
 
-  bool patchIfRequired(String date, unsigned int timestamp, float co2data, ConfigStore& config)
+  bool patchIfRequired(String date, unsigned int timestamp, float co2data, ConfigStore& config, int responseCode)
   {
     bool required = timestamp > last_patch_time + patch_interval;
     if(required && config.isSendToCloud())
     {
-      String payload = api.patch(app_key, localId, idToken, date, String(timestamp), co2data);
+      String payload;
+      responseCode = api.patch(app_key, localId, idToken, date, String(timestamp), co2data, payload);
+      if(responseCode != 200)
+      {
+        Serial.println(payload);
+      }
       last_patch_time = timestamp;
     }
     return required;

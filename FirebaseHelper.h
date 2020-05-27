@@ -81,9 +81,6 @@ public:
     String param = _data;
     int responseCode = http.PATCH(param);
     
-    M5.Lcd.setTextSize(1);
-    M5.Lcd.setCursor( 280, 10 );
-    M5.Lcd.printf("%d", responseCode);
     if( responseCode > 0 ) 
     {     
       payload = http.getString(); 
@@ -93,10 +90,8 @@ public:
     return responseCode;
   }
 
-  String patch(String key, String localid, String token, String date, String timestamp, float data, bool documentExists = true)
+  int patch(String key, String localid, String token, String date, String timestamp, float data, String& payload, bool documentExists = true)
   {
-    
-    String payload = "{}";
     String url = DOCUMENT_HOST + localid + "/" + "D"+date + "?currentDocument.exists=" + (documentExists ? "true":"false") + UPDATE_MASK +"datas.T" + timestamp; //firestore rest API doesn't accept updatemask without "D"
     url += "&key=" + key;
 //    Serial.println(url);
@@ -105,21 +100,21 @@ public:
     int responseCode = patch(url, param, token, payload );
     if (responseCode == 404 && documentExists)
     {
-        payload = patch(key, localid, token, date, timestamp, data, false);
-        patchDocumentId(key, localid, token, date);
+        payload = patch(key, localid, token, date, timestamp, data, payload, false);
+        patchDocumentId(key, localid, token, date, payload);
     }
 //    Serial.println("RESPONSE CODE" + String(responseCode));
 //    Serial.println(payload);
-    return payload;
+    return responseCode;
   }
 
-  String patchDocumentId(String key, String localId, String token, String date )
+  int patchDocumentId(String key, String localId, String token, String date, String& payload )
   {
-    String payload = "{}";
     String url = DOCUMENT_HOST + localId + "/" + "D"+date + "?currentDocument.exists=true"+ UPDATE_MASK +"documentId"; //firestore rest API doesn't accept updatemask without "D"
     url += "&key=" + key;
     String param = "{\"fields\":{\"documentId\":{\"stringValue\":\"D"+date+"\"}}}";
-    int responseCode = patch(url, param, token, payload );
+    return patch(url, param, token, payload );
+    
   }
   
 private:

@@ -11,6 +11,7 @@ Co2Sensor _co2sensor;
 unsigned int _cur_time;
 struct tm _tm;
 ConfigStore _config;
+int patchResponseCode;
 
 void setup(){
   // Initialize the M5Stack object
@@ -53,9 +54,15 @@ void loop() {
     String today = String(_tm.tm_year + 1900);
     today += (_tm.tm_mon < 10 ) ? "0" + String(_tm.tm_mon+1) : String(_tm.tm_mon+1);
     today += (_tm.tm_mday < 10 ) ? "0" + String(_tm.tm_mday) : String(_tm.tm_mday);
-    _account.patchIfRequired(today, _cur_time, _co2sensor.getConcentration(), _config);
+    int resCode = 0;
+    bool patched = _account.patchIfRequired(today, _cur_time, _co2sensor.getConcentration(), _config, resCode);
+    if(patched) patchResponseCode = resCode;
     //Serial.println(payload);
   }
+  
+  M5.Lcd.setTextSize(1);
+  M5.Lcd.setCursor( 280, 10 );
+  M5.Lcd.printf("%d", patchResponseCode);
 }
 
 unsigned int _timestamp()
