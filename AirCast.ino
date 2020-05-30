@@ -4,8 +4,6 @@
 #include "Co2Sensor.h"
 #include "ConfigStore.h"
 
-#define JST (3600L * 9 ) // +9:00 JST
-
 Account _account;
 Co2Sensor _co2sensor;
 unsigned int _cur_time;
@@ -19,7 +17,6 @@ void setup(){
   Serial.begin(9600);
   _config.setup();
 //  _led.setup();
-  configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
   _cur_time = _timestamp();
   _co2sensor.setup();
 }
@@ -31,7 +28,7 @@ void loop() {
   bool samplingResult = false;
   //update basic issue
   _cur_time = _timestamp();
-  _account.update(_cur_time);
+  if(_config.isWifiEnabled()) _account.update(_cur_time);
   bool bSampling = _co2sensor.isToUpdate(_cur_time);
 
   //sensor
@@ -50,7 +47,7 @@ void loop() {
   _config.drawConfig();
 
   //update to server
-  if ( samplingResult ){
+  if ( samplingResult && _config.isWifiEnabled()){
     String today = String(_tm.tm_year + 1900);
     today += (_tm.tm_mon < 10 ) ? "0" + String(_tm.tm_mon+1) : String(_tm.tm_mon+1);
     today += (_tm.tm_mday < 10 ) ? "0" + String(_tm.tm_mday) : String(_tm.tm_mday);

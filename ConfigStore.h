@@ -2,7 +2,7 @@
 #define CONFIG_STORE
 #include "WiFiConnection.h"
 #include "WifiConfig.h"
-#include "ConfigValue.h"
+#include "config/ConfigValue.h"
 #include <Preferences.h>
 #define NUM_CONFIG (4)
 #define KEY_PREF "aircast-config"
@@ -10,6 +10,8 @@
 #define KEY_ADC "adc-adjustment"
 #define KEY_SSID "wifi-ssid"
 #define KEY_PASS "wifi-password"
+
+#define JST (3600L * 9 ) // +9:00 JST
 
 class ConfigStore
 {
@@ -24,8 +26,18 @@ public:
     _adcAdjustment.setup(1,"ADC adjustment");
     _wifi_setup.setup(2, "wifi","setup");
     _exit.setup(3, "Exit", "<->");
-    restoreConfig();
-    _wifi.setupConnection();
+    if(restoreConfig())
+    {
+      _wifi.setupConnection();
+      _wifi_enabled = true;
+      configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
+    }
+    else
+    {
+      _wifiConfig.enter();
+      _configMode = true;
+      _wifi_enabled = false;
+    }
   }
 
   bool restoreConfig()
@@ -52,6 +64,10 @@ public:
     return _configMode;
   }
 
+  bool isWifiEnabled()
+  {
+    return _wifi_enabled;
+  }
   void update()
   {
     if(!_wifiConfig.isWifiConfigMode() )updateGlobalConfig();
@@ -86,7 +102,7 @@ private:
   unsigned int _focus_index = 0;
   Preferences _preferences;
   WifiConfig _wifiConfig;
-
+  bool _wifi_enabled = false;
 
   void updateGlobalConfig()
   {
