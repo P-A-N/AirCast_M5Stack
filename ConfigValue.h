@@ -7,12 +7,18 @@ class ConfigValue
   public:
   String _title;
   T _targetValue;
-
-  void setup(int index, String title, T value )
+  
+  void setup(int index, String title )
   {
     _index = index;
     _title = title;
+  }
+  
+  void setup(int index, String title, T value )
+  {
+    setup(index, title);
     _targetValue = value;
+    Serial.print(_targetValue);
   }
 
   operator T() const
