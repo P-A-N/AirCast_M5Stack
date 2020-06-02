@@ -4,15 +4,18 @@
 class WiFiConnection
 { 
 public:
-  void setupConnection(String ssid, String wifi_password)
+  bool setupConnection(String ssid, String wifi_password)
   {
     WiFi.begin(ssid.c_str(), wifi_password.c_str());
+    int timeupCount = 0;
     while(WiFi.status() != WL_CONNECTED)
     {
       delay(500);
       M5.Lcd.print('.');  
+      timeupCount++;
+      if( timeupCount > 30 ) break;
     }
-    delay(500);
+    return WiFi.status() == WL_CONNECTED;
   }
   
   void drawWiFiInfo(String ssid)

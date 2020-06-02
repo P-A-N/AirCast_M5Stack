@@ -26,13 +26,18 @@ public:
     _adcAdjustment.setup(1,"ADC adjustment", 0.035);
     _wifi_setup.setup(2, "wifi","setup");
     _exit.setup(3, "Exit", "<->");
-    if(restoreConfig())
+    _settingResored = restoreConfig();
+    if(_settingResored)
     {
-      _wifi.setupConnection(_wifi_ssid,_wifi_password);
-      _wifi_enabled = true;
-      configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
+      _wifi_enabled = _wifi.setupConnection(_wifi_ssid,_wifi_password);
+      if(_wifi_enabled)
+        configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
     }
-    else
+    Serial.print("wifi enabled:");
+    Serial.println(_wifi_enabled);
+    Serial.print("upload enabled:");
+    Serial.println(_bSendValue);
+    if(!_wifi_enabled && _bSendValue)
     {
       _wifiConfig.enter();
       _configMode = true;
@@ -52,7 +57,9 @@ public:
     Serial.println(_wifi_ssid);
     Serial.print("WIFI-PASSWD: ");
     Serial.println(_wifi_password);
+    Serial.print("UPDATE-value: ");
     Serial.println(_bSendValue);
+    Serial.print("Adjust-value: ");
     Serial.println(_adcAdjustment);
     
     if(String(_wifi_ssid).length() > 0) {
@@ -71,7 +78,7 @@ public:
   {
     return _wifi_enabled;
   }
-  void update()
+  bool update()
   {
     if(!_wifiConfig.isWifiConfigMode() )updateGlobalConfig();
     else _wifiConfig.update();
@@ -83,6 +90,7 @@ public:
       delay(3000);
       ESP.restart();
     }
+    return !_wifiConfig.isWifiConfigMode();
   }
 
   void drawConfig()
@@ -102,6 +110,7 @@ public:
 
 private:
   bool _configMode = false;
+  boolean _settingResored = false;
   ConfigValue<bool> _bSendValue;
   ConfigValue<float> _adcAdjustment;
   ConfigValue<String> _exit;
