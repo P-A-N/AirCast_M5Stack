@@ -13,7 +13,7 @@
 
 #define JST (3600L * 9 ) // +9:00 JST
 
-class ConfigStore
+class AppConfig
 {
 public:
  
@@ -22,13 +22,13 @@ public:
     Serial.println("Config setup!");
     _preferences.begin(KEY_PREF);
     
-    _bSendValue.setup(0, "upload data");
-    _adcAdjustment.setup(1,"ADC adjustment");
+    _bSendValue.setup(0, "upload data", true);
+    _adcAdjustment.setup(1,"ADC adjustment", 0.035);
     _wifi_setup.setup(2, "wifi","setup");
     _exit.setup(3, "Exit", "<->");
     if(restoreConfig())
     {
-      _wifi.setupConnection();
+      _wifi.setupConnection(_wifi_ssid,_wifi_password);
       _wifi_enabled = true;
       configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
     }
@@ -42,15 +42,18 @@ public:
 
   bool restoreConfig()
   {
-    _wifi_ssid = _preferences.getString("WIFI_SSID");
-    _wifi_password = _preferences.getString("WIFI_PASSWD");
-    _bSendValue = _preferences.getBool(KEY_CLOUD);
-    _adcAdjustment = _preferences.getFloat(KEY_ADC);
+    _wifi_ssid = _preferences.getString(KEY_SSID);
+    _wifi_password = _preferences.getString(KEY_PASS);
+    _bSendValue = (boolean)_preferences.getBool(KEY_CLOUD);
+    float tmpfloat = (float)_preferences.getFloat(KEY_ADC);
+    if(!isnan(tmpfloat)) _adcAdjustment = tmpfloat;
     
     Serial.print("WIFI-SSID: ");
     Serial.println(_wifi_ssid);
     Serial.print("WIFI-PASSWD: ");
     Serial.println(_wifi_password);
+    Serial.println(_bSendValue);
+    Serial.println(_adcAdjustment);
     
     if(String(_wifi_ssid).length() > 0) {
       return true;
@@ -72,12 +75,19 @@ public:
   {
     if(!_wifiConfig.isWifiConfigMode() )updateGlobalConfig();
     else _wifiConfig.update();
+    if(_wifiConfig.getSetupData(_wifi_ssid, _wifi_password))
+    {
+      Serial.println("save & restart" + _wifi_ssid + "/" + _wifi_password);
+      _preferences.putString(KEY_SSID,_wifi_ssid);
+      _preferences.putString(KEY_PASS,_wifi_password);
+      delay(3000);
+      ESP.restart();
+    }
   }
 
   void drawConfig()
   {
     if(!_wifiConfig.isWifiConfigMode() )drawGlobalConfig();
-    else _wifiConfig.draw();
   }
 
   bool isSendToCloud()
@@ -118,29 +128,38 @@ private:
     }
     else if(_configMode)
     {
+      //focus down
       if(M5.BtnB.wasPressed())
       {
         _focus_index++;
         _focus_index %= NUM_CONFIG;
         M5.Lcd.clear(BLACK);
       }
+
+      //update focus
       _bSendValue.update(_focus_index);
       _adcAdjustment.update(_focus_index);
       _wifi_setup.update(_focus_index);
       _exit.update(_focus_index);
-      if((M5.BtnA.wasPressed() || M5.BtnC.wasPressed()) && _wifi_setup.isFocused())
+
+      //change config
+      if(M5.BtnA.wasPressed() || M5.BtnC.wasPressed()) 
       {
-        _wifiConfig.enter();
-        M5.Lcd.clear(BLACK);
-      }
-      if((M5.BtnA.wasPressed() || M5.BtnC.wasPressed()) && _exit.isFocused())
-      {
-        _configMode = false;
-        
-        _preferences.putBool(KEY_CLOUD,_bSendValue);
-        _preferences.putFloat(KEY_ADC,_adcAdjustment);
-        Serial.println("save data!" + String(_bSendValue));
-        M5.Lcd.clear(BLACK);
+        if( _wifi_setup.isFocused() && !_wifiConfig.isWifiConfigMode())
+        {          
+          M5.Lcd.clear(BLACK);
+          _wifiConfig.enter();
+          _configMode = true;
+          _wifi_enabled = false;
+        }
+        else if( _exit.isFocused())
+        {
+          _configMode = false;
+          _preferences.putBool(KEY_CLOUD,_bSendValue);
+          _preferences.putFloat(KEY_ADC,_adcAdjustment);
+          Serial.println("save data!" + String(_bSendValue));
+          M5.Lcd.clear(BLACK);
+        }
       }
     }
   }
@@ -153,7 +172,7 @@ private:
       _adcAdjustment.drawMenu(); 
       _wifi_setup.drawMenu();
       _exit.drawMenu(); 
-      _wifi.drawWiFiInfo();
+      _wifi.drawWiFiInfo(_wifi_ssid);
     }
     else
     {

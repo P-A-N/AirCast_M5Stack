@@ -2,13 +2,13 @@
 #include <WiFi.h>
 #include "Account.h"
 #include "Co2Sensor.h"
-#include "ConfigStore.h"
+#include "AppConfig.h"
 
 Account _account;
 Co2Sensor _co2sensor;
 unsigned int _cur_time;
 struct tm _tm;
-ConfigStore _config;
+AppConfig _config;
 int patchResponseCode;
 
 void setup(){
@@ -35,7 +35,7 @@ void loop() {
   if( bSampling )
   {
     samplingResult = _co2sensor.sample(_cur_time, _config.voltage_adjust());
-    M5.Lcd.clear(BLACK);
+    //M5.Lcd.clear(BLACK);
   }
 
   //draw stuffs

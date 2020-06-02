@@ -8,13 +8,14 @@
 #include <WiFi.h>
 #include "FirebaseHelper.h"
 #include <ArduinoJson.h>
-#include "ConfigStore.h"
+#include "AppConfig.h"
 
 class Account
 {
 public:
   void update(unsigned int cur_time)
   {
+    if(last_patch_time == 0) last_patch_time = cur_time;//skip first time
     if(expireTime == EXPIRE_NOT_SET)
     {
       Serial.println("log in");
@@ -26,7 +27,7 @@ public:
     }
   }
 
-  bool patchIfRequired(String date, unsigned int timestamp, float co2data, ConfigStore& config, int& responseCode)
+  bool patchIfRequired(String date, unsigned int timestamp, float co2data, AppConfig& config, int& responseCode)
   {
     bool required = timestamp > last_patch_time + patch_interval;
     if(required && config.isSendToCloud())

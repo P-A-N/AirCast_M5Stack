@@ -6,7 +6,7 @@
 class WifiConfig
 {
 public:
-   WifiConfig():_webServer(80), _apIP(192,168,1,1){}
+   WifiConfig():_webServer(80), _apIP(192,168,44,1){}
   void enter()
   {
     _bWifiConfigMode = true;
@@ -15,19 +15,20 @@ public:
     setupMode();
   }
 
+  bool getSetupData(String& ssid, String& pass)
+  {
+    if(_bWifiConfigMode && _ssid != "")
+    {
+      ssid = _ssid;
+      pass = _pass;
+      return true;
+    }
+    return false;
+  }
+
   void update()
   {
     _webServer.handleClient();
-  }
-
-  void draw()
-  {
-    
-  }
-
-  void exit()
-  {
-    _bWifiConfigMode = false;
   }
   
   bool isWifiConfigMode()
@@ -67,11 +68,16 @@ private:
     // dnsServer.start(53, "*", apIP);
     startWebServer();
     Serial.print("Starting Access Point at \"");
-    M5.Lcd.print("Starting Access Point at \"");
+    M5.Lcd.print("Please Choose WIFI of \"");
     Serial.print(_apSSID);
     M5.Lcd.print(_apSSID);
     Serial.println("\"");
     M5.Lcd.println("\"");
+
+    String _url = WiFi.softAPIP().toString();
+    M5.Lcd.print("and setup with http://"+_url+"/settings");
+    M5.Lcd.qrcode("http://"+_url+"/settings", 5, 45, 190);//url, posx, posy, size, version
+    
   }
 
   void startWebServer() {
@@ -88,6 +94,7 @@ private:
       _webServer.send(200, "text/html", s);
     });
     _webServer.on("/setap", [&]() {
+      
       _ssid = WebServer::urlDecode(_webServer.arg("ssid"));
       Serial.print("SSID: ");
       M5.Lcd.print("SSID: ");
@@ -100,7 +107,6 @@ private:
       M5.Lcd.println(_pass);
       Serial.println("Writing SSID to EEPROM...");
       M5.Lcd.println("Writing SSID to EEPROM...");
-
       // Store wifi config
       Serial.println("Writing Password to nvr...");
       M5.Lcd.println("Writing Password to nvr...");
@@ -112,8 +118,6 @@ private:
       s += "\" after the restart.";
       s = makePage("Wi-Fi Settings", s);
       _webServer.send(200, "text/html", s);
-      delay(3000);
-      ESP.restart();
     });
       _webServer.onNotFound([&]() {
       String s = "<h1>AP mode</h1><p><a href=\"/settings\">Wi-Fi Settings</a></p>";
