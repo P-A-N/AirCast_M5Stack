@@ -63,19 +63,22 @@ public:
 
   bool manageWifiConnection()
   {
-    if (!_wifi_enabled && _bSendValue && !_wifiConfig.isWifiConfigMode() )
+    if(!_wifiConfig.isWifiConfigMode())
     {
-      if(_settingResored)
+      if (!_wifi_enabled && _bSendValue && !_configMode )
       {
-        _wifi_enabled = _wifi.setupConnection(_wifi_ssid,_wifi_password, _configMode);
-      }
-      Serial.print("wifi enabled:");
-      Serial.println(_wifi_enabled);
-      Serial.print("upload enabled:");
-      Serial.println(_bSendValue);
-      if(!_configMode)
-      {
-        ESP.restart();
+        if(_settingResored)
+        {
+          _wifi_enabled = _wifi.setupConnection(_wifi_ssid,_wifi_password, _configMode);
+        }
+        Serial.print("wifi enabled:");
+        Serial.println(_wifi_enabled);
+        Serial.print("upload enabled:");
+        Serial.println(_bSendValue);
+        if(!_configMode && !_wifi_enabled)
+        {
+          ESP.restart();
+        }
       }
     }
     return !_wifiConfig.isWifiConfigMode();
@@ -84,14 +87,15 @@ public:
   void update()
   {    
     if(!_wifiConfig.isWifiConfigMode() )updateGlobalConfig();
-    else 
+  }
+
+  void updateWebServer()
+  {
+    _wifiConfig.update();
+    if( M5.BtnB.wasPressed() )
     {
-      _wifiConfig.update();
-      if( M5.BtnB.wasPressed() )
-      {
-        M5.Lcd.clear(BLACK);
-        _wifiConfig.exit();
-      }
+      M5.Lcd.clear(BLACK);
+      _wifiConfig.exit();
     }
     if(_wifiConfig.getSetupData(_wifi_ssid, _wifi_password))
     {

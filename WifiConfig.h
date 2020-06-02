@@ -33,6 +33,7 @@ public:
 
   void update()
   {
+    Serial.print("handling client");
     _webServer.handleClient();
   }
   

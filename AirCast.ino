@@ -63,6 +63,10 @@ void loop() {
     M5.Lcd.setCursor( 280, 10 );
     M5.Lcd.printf("%d", patchResponseCode);
   }
+  else
+  {
+    _config.updateWebServer();
+  }
 }
 
 unsigned int _timestamp(bool wifi_enabled)
