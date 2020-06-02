@@ -15,9 +15,14 @@ void setup(){
   // Initialize the M5Stack object
   M5.begin();
   Serial.begin(115200);
+
+  //application and wifi config restore and connect to wifi
   _config.setup();
-//  _led.setup();
+
+  //get timestamp when wifi is not available this return millis()
   _cur_time = _timestamp(_config.isWifiEnabled());
+
+  //sensor setup(pin mode)
   _co2sensor.setup();
 }
 

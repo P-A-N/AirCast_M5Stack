@@ -78,6 +78,7 @@ public:
   {
     return _wifi_enabled;
   }
+  
   bool update()
   {
     if(!_wifiConfig.isWifiConfigMode() )updateGlobalConfig();

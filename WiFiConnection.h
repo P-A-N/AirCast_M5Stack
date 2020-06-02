@@ -6,6 +6,7 @@ class WiFiConnection
 public:
   bool setupConnection(String ssid, String wifi_password)
   {
+    WiFi.disconnect(true, true);//おまじない
     WiFi.begin(ssid.c_str(), wifi_password.c_str());
     int timeupCount = 0;
     while(WiFi.status() != WL_CONNECTED)
