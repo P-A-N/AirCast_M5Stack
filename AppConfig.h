@@ -1,7 +1,7 @@
 #ifndef CONFIG_STORE
 #define CONFIG_STORE
-#include "WiFiConnection.h"
 #include "WifiConfig.h"
+#include "WiFiConnection.h"
 #include "config/ConfigValue.h"
 #include <Preferences.h>
 #define NUM_CONFIG (4)
@@ -10,8 +10,6 @@
 #define KEY_ADC "adc-adjustment"
 #define KEY_SSID "wifi-ssid"
 #define KEY_PASS "wifi-password"
-
-#define JST (3600L * 9 ) // +9:00 JST
 
 class AppConfig
 {
@@ -27,22 +25,6 @@ public:
     _wifi_setup.setup(2, "wifi","setup");
     _exit.setup(3, "Exit", "<->");
     _settingResored = restoreConfig();
-    if(_settingResored)
-    {
-      _wifi_enabled = _wifi.setupConnection(_wifi_ssid,_wifi_password);
-      if(_wifi_enabled)
-        configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
-    }
-    Serial.print("wifi enabled:");
-    Serial.println(_wifi_enabled);
-    Serial.print("upload enabled:");
-    Serial.println(_bSendValue);
-    if(!_wifi_enabled && _bSendValue)
-    {
-      _wifiConfig.enter();
-      _configMode = true;
-      _wifi_enabled = false;
-    }
   }
 
   bool restoreConfig()
@@ -78,11 +60,39 @@ public:
   {
     return _wifi_enabled;
   }
-  
-  bool update()
+
+  bool manageWifiConnection()
   {
+    if (!_wifi_enabled && _bSendValue && !_wifiConfig.isWifiConfigMode() )
+    {
+      if(_settingResored)
+      {
+        _wifi_enabled = _wifi.setupConnection(_wifi_ssid,_wifi_password, _configMode);
+      }
+      Serial.print("wifi enabled:");
+      Serial.println(_wifi_enabled);
+      Serial.print("upload enabled:");
+      Serial.println(_bSendValue);
+      if(!_configMode)
+      {
+        ESP.restart();
+      }
+    }
+    return !_wifiConfig.isWifiConfigMode();
+  }
+  
+  void update()
+  {    
     if(!_wifiConfig.isWifiConfigMode() )updateGlobalConfig();
-    else _wifiConfig.update();
+    else 
+    {
+      _wifiConfig.update();
+      if( M5.BtnB.wasPressed() )
+      {
+        M5.Lcd.clear(BLACK);
+        _wifiConfig.exit();
+      }
+    }
     if(_wifiConfig.getSetupData(_wifi_ssid, _wifi_password))
     {
       Serial.println("save & restart" + _wifi_ssid + "/" + _wifi_password);
@@ -91,7 +101,6 @@ public:
       delay(3000);
       ESP.restart();
     }
-    return !_wifiConfig.isWifiConfigMode();
   }
 
   void drawConfig()
@@ -184,7 +193,7 @@ private:
       _exit.drawMenu(); 
       _wifi.drawWiFiInfo(_wifi_ssid);
     }
-    else
+    if(!_configMode || _wifiConfig.isWifiConfigMode()) 
     {
       M5.Lcd.setCursor( 145, 225 );
       M5.Lcd.setTextSize(1);

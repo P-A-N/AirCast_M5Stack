@@ -15,6 +15,11 @@ public:
     setupMode();
   }
 
+  void exit()
+  {
+    _bWifiConfigMode = false;
+  }
+
   bool getSetupData(String& ssid, String& pass)
   {
     if(_bWifiConfigMode && _ssid != "")
@@ -49,7 +54,7 @@ private:
     WiFi.disconnect();
     delay(100);
     int n = WiFi.scanNetworks();
-    delay(100);
+    delay(300);
     Serial.println("");
     M5.Lcd.println("");
     for (int i = 0; i < n; ++i) {

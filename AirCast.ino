@@ -6,7 +6,7 @@
 
 Account _account;
 Co2Sensor _co2sensor;
-unsigned int _cur_time;
+unsigned int _cur_time = 0;
 struct tm _tm;
 AppConfig _config;
 int patchResponseCode;
@@ -18,10 +18,6 @@ void setup(){
 
   //application and wifi config restore and connect to wifi
   _config.setup();
-
-  //get timestamp when wifi is not available this return millis()
-  _cur_time = _timestamp(_config.isWifiEnabled());
-
   //sensor setup(pin mode)
   _co2sensor.setup();
 }
@@ -29,8 +25,11 @@ void setup(){
 // the loop routine runs over and over again forever 
 void loop() {
   M5.update();
-  if(_config.update())
+  if(_config.manageWifiConnection())//return true when wifi config is not active, force restart when it is required
   {
+    if(_cur_time == 0) _cur_time = _timestamp(_config.isWifiEnabled());
+    _config.update();
+    //get timestamp when wifi is not available this return millis()
     bool samplingResult = false;
     //update basic issue
     _cur_time = _timestamp(_config.isWifiEnabled());
