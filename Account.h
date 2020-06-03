@@ -36,7 +36,9 @@ public:
       responseCode = api.patch(app_key, localId, idToken, date, String(timestamp), co2data, payload);
       if(responseCode != 200)
       {
-        Serial.println(payload);
+        M5.Lcd.setTextSize(1);
+        M5.Lcd.setCursor( 10, 140 );
+        M5.Lcd.println(payload);
       }
       last_patch_time = timestamp;
     }

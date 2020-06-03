@@ -9,6 +9,7 @@ Co2Sensor _co2sensor;
 unsigned int _cur_time = 0;
 struct tm _tm;
 AppConfig _config;
+int invalidResponseCodeCount = 0;
 int patchResponseCode;
 
 void setup(){
@@ -55,10 +56,14 @@ void loop() {
       today += (_tm.tm_mday < 10 ) ? "0" + String(_tm.tm_mday) : String(_tm.tm_mday);
       int resCode = 0;
       bool patched = _account.patchIfRequired(today, _cur_time, _co2sensor.getConcentration(), _config, resCode);
-      if(patched) patchResponseCode = resCode;
-      //Serial.println(payload);
+      if(patched) 
+      {
+        patchResponseCode = resCode;
+        if(patchResponseCode == 200) invalidResponseCodeCount = 0;
+        else invalidResponseCodeCount++;
+        if(invalidResponseCodeCount > 3) ESP.restart();
+      }
     }
-    
     M5.Lcd.setTextSize(1);
     M5.Lcd.setCursor( 280, 10 );
     M5.Lcd.printf("%d", patchResponseCode);

@@ -10,6 +10,7 @@ public:
   {
     aborted = false;
     WiFi.begin(ssid.c_str(), wifi_password.c_str());
+    WiFi.setAutoReconnect(true);
     int timeupCount = 0;
     while(WiFi.status() != WL_CONNECTED)
     {

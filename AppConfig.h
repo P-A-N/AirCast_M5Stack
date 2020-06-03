@@ -44,7 +44,7 @@ public:
     Serial.print("Adjust-value: ");
     Serial.println(_adcAdjustment);
     
-    if(String(_wifi_ssid).length() > 0) {
+    if(String(_wifi_ssid).length() > 0 || _bSendValue) {
       return true;
     } else {
       return false;
@@ -63,21 +63,29 @@ public:
 
   bool manageWifiConnection()
   {
-    if(!_wifiConfig.isWifiConfigMode())
+    if(!_wifiConfig.isWifiConfigMode())//Skip if its already in WiFi config mode
     {
       if (!_wifi_enabled && _bSendValue && !_configMode )
       {
-        if(_settingResored)
+        if(_wifi_ssid != "")
         {
+          Serial.println("Try to Connect to WiFi");
           _wifi_enabled = _wifi.setupConnection(_wifi_ssid,_wifi_password, _configMode);
+          
+          Serial.print("wifi enabled:");
+          Serial.println(_wifi_enabled);
+          Serial.print("upload enabled:");
+          Serial.println(_bSendValue);
+          if(!_configMode && !_wifi_enabled)
+          {
+            WiFi.persistent(false);
+            WiFi.disconnect(true);
+            ESP.restart();
+          } 
         }
-        Serial.print("wifi enabled:");
-        Serial.println(_wifi_enabled);
-        Serial.print("upload enabled:");
-        Serial.println(_bSendValue);
-        if(!_configMode && !_wifi_enabled)
+        else
         {
-          ESP.restart();
+          enterWifiSetting();
         }
       }
     }
@@ -170,10 +178,7 @@ private:
       {
         if( _wifi_setup.isFocused() && !_wifiConfig.isWifiConfigMode())
         {          
-          M5.Lcd.clear(BLACK);
-          _wifiConfig.enter();
-          _configMode = true;
-          _wifi_enabled = false;
+          enterWifiSetting();
         }
         else if( _exit.isFocused())
         {
@@ -185,6 +190,14 @@ private:
         }
       }
     }
+  }
+
+  void enterWifiSetting()
+  {      
+    M5.Lcd.clear(BLACK);
+    _wifiConfig.enter();
+    _configMode = true;
+    _wifi_enabled = false;
   }
 
   void drawGlobalConfig()
