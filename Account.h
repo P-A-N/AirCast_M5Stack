@@ -2,7 +2,7 @@
 #define DATA_PUSH
 
 #define EXPIRE_NOT_SET 0
-#define UPLOAD_INTERVAL_SEC 300
+#define UPLOAD_INTERVAL_SEC 20
 
 #include <M5Stack.h>
 #include <WiFi.h>
@@ -36,9 +36,7 @@ public:
       responseCode = api.patch(app_key, localId, idToken, date, String(timestamp), co2data, payload);
       if(responseCode != 200)
       {
-        M5.Lcd.setTextSize(1);
-        M5.Lcd.setCursor( 10, 140 );
-        M5.Lcd.println(payload);
+        patchPayload = payload;
       }
       last_patch_time = timestamp;
     }
@@ -63,7 +61,14 @@ public:
     return responseCode == 200;
   }
 
-private:  
+  String getPayload()
+  {
+    return patchPayload;
+  }
+
+private:
+
+  String patchPayload;
   FirebaseHelper api;
   unsigned int now_l;
   

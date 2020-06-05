@@ -60,13 +60,18 @@ void loop() {
       {
         patchResponseCode = resCode;
         if(patchResponseCode == 200) invalidResponseCodeCount = 0;
-        else invalidResponseCodeCount++;
-        if(invalidResponseCodeCount > 3) ESP.restart();
+        else 
+        {
+          invalidResponseCodeCount++;
+          _config.storeErrorMsg(_account.getPayload());
+        }
+        if(invalidResponseCodeCount > 30) ESP.restart();
       }
     }
     M5.Lcd.setTextSize(1);
     M5.Lcd.setCursor( 280, 10 );
     M5.Lcd.printf("%d", patchResponseCode);
+    _config.drawErrorString();
   }
   else
   {

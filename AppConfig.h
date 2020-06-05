@@ -10,6 +10,7 @@
 #define KEY_ADC "adc-adjustment"
 #define KEY_SSID "wifi-ssid"
 #define KEY_PASS "wifi-password"
+#define KEY_ERROR "error_msg"
 
 class AppConfig
 {
@@ -25,30 +26,6 @@ public:
     _wifi_setup.setup(2, "wifi","setup");
     _exit.setup(3, "Exit", "<->");
     _settingResored = restoreConfig();
-  }
-
-  bool restoreConfig()
-  {
-    _wifi_ssid = _preferences.getString(KEY_SSID);
-    _wifi_password = _preferences.getString(KEY_PASS);
-    _bSendValue = (boolean)_preferences.getBool(KEY_CLOUD);
-    float tmpfloat = (float)_preferences.getFloat(KEY_ADC);
-    if(!isnan(tmpfloat)) _adcAdjustment = tmpfloat;
-    
-    Serial.print("WIFI-SSID: ");
-    Serial.println(_wifi_ssid);
-    Serial.print("WIFI-PASSWD: ");
-    Serial.println(_wifi_password);
-    Serial.print("UPDATE-value: ");
-    Serial.println(_bSendValue);
-    Serial.print("Adjust-value: ");
-    Serial.println(_adcAdjustment);
-    
-    if(String(_wifi_ssid).length() > 0 || _bSendValue) {
-      return true;
-    } else {
-      return false;
-    }
   }
 
   bool isConfigMode()
@@ -130,6 +107,19 @@ public:
     return _adcAdjustment;
   }
 
+  void storeErrorMsg(String msg)
+  {
+    _errorMsg = msg;
+    _preferences.putString(KEY_ERROR,msg);
+  }
+
+  void drawErrorString()
+  {
+    M5.Lcd.setCursor( 10, 120 );
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.printf(_errorMsg.c_str());
+  }
+
 private:
   bool _configMode = false;
   boolean _settingResored = false;
@@ -144,7 +134,33 @@ private:
   Preferences _preferences;
   WifiConfig _wifiConfig;
   bool _wifi_enabled = false;
+  String _errorMsg;
 
+
+  bool restoreConfig()
+  {
+    _wifi_ssid = _preferences.getString(KEY_SSID);
+    _wifi_password = _preferences.getString(KEY_PASS);
+    _bSendValue = (boolean)_preferences.getBool(KEY_CLOUD);
+    _errorMsg = _preferences.getString(KEY_ERROR);
+    float tmpfloat = (float)_preferences.getFloat(KEY_ADC);
+    if(!isnan(tmpfloat)) _adcAdjustment = tmpfloat;
+    
+    Serial.print("WIFI-SSID: ");
+    Serial.println(_wifi_ssid);
+    Serial.print("WIFI-PASSWD: ");
+    Serial.println(_wifi_password);
+    Serial.print("UPDATE-value: ");
+    Serial.println(_bSendValue);
+    Serial.print("Adjust-value: ");
+    Serial.println(_adcAdjustment);
+    
+    if(String(_wifi_ssid).length() > 0 || _bSendValue) {
+      return true;
+    } else {
+      return false;
+    }
+  }
   void updateGlobalConfig()
   {
     if(!_configMode && M5.BtnB.wasPressed())
