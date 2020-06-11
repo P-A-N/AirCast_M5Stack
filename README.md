@@ -1,5 +1,7 @@
 # Aircast_M5Stack
 
+<img src="./img/aircast_image.jpg" width="50%" height="50%">
+
 [Aircast](https://p4n.jp/works/aircast/) is open source Co2 monitoring IoT application which works on M5Stack. 
 
 ## Dependency
