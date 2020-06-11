@@ -67,11 +67,11 @@ void loop() {
         }
         if(invalidResponseCodeCount > 30) ESP.restart();
       }
+      M5.Lcd.setTextSize(1);
+      M5.Lcd.setCursor( 280, 10 );
+      M5.Lcd.printf("%d", patchResponseCode);
+      _config.drawErrorString();
     }
-    M5.Lcd.setTextSize(1);
-    M5.Lcd.setCursor( 280, 10 );
-    M5.Lcd.printf("%d", patchResponseCode);
-    _config.drawErrorString();
   }
   else
   {
