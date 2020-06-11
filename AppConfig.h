@@ -21,7 +21,7 @@ public:
     Serial.println("Config setup!");
     _preferences.begin(KEY_PREF);
     
-    _bSendValue.setup(0, "upload data", true);
+    _bSendValue.setup(0, "upload data", false);
     _adcAdjustment.setup(1,"ADC adjustment", 0.035);
     _wifi_setup.setup(2, "wifi","setup");
     _exit.setup(3, "Exit", "<->");
