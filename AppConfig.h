@@ -5,12 +5,12 @@
 #include "config/ConfigValue.h"
 #include <Preferences.h>
 #define NUM_CONFIG (4)
-#define KEY_PREF "aircast-config"
-#define KEY_CLOUD "upload-data"
-#define KEY_ADC "adc-adjustment"
-#define KEY_SSID "wifi-ssid"
-#define KEY_PASS "wifi-password"
-#define KEY_ERROR "error_msg"
+#define KEY_PREF "_aircast-config"
+#define KEY_CLOUD "_upload-data"
+#define KEY_ADC "_adc-adjustment"
+#define KEY_SSID "_wifi-ssid"
+#define KEY_PASS "_wifi-password"
+#define KEY_ERROR "_error_msg"
 
 class AppConfig
 {
@@ -115,7 +115,7 @@ public:
 
   void drawErrorString()
   {
-    M5.Lcd.setCursor( 10, 120 );
+    M5.Lcd.setCursor( 10, 140 );
     M5.Lcd.setTextSize(1);
     M5.Lcd.printf(_errorMsg.c_str());
   }
