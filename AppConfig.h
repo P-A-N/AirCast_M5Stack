@@ -18,14 +18,14 @@ public:
  
   void setup()
   {
-    Serial.println("Config setup!");
-    _preferences.begin(KEY_PREF);
-    
-    _bSendValue.setup(0, "upload data", false);
+    Serial.println("config setup");
+     _preferences.begin(KEY_PREF);
+     _bSendValue.setup(0, "upload data", false);
     _adcAdjustment.setup(1,"ADC adjustment", 0.035);
     _wifi_setup.setup(2, "wifi","setup");
     _exit.setup(3, "Exit", "<->");
     _settingResored = restoreConfig();
+    //manageWifiConnection();
   }
 
   bool isConfigMode()
@@ -40,6 +40,7 @@ public:
 
   bool manageWifiConnection()
   {
+    
     if(!_wifiConfig.isWifiConfigMode())//Skip if its already in WiFi config mode
     {
       if (!_wifi_enabled && _bSendValue && !_configMode )

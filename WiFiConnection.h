@@ -8,10 +8,13 @@ class WiFiConnection
 public:
   bool setupConnection(String ssid, String wifi_password, bool& aborted)
   {
-    aborted = false;
-    WiFi.begin(ssid.c_str(), wifi_password.c_str());
-    WiFi.setAutoReconnect(true);
+    aborted = false; 
+    if(WiFi.status() != WL_CONNECTED)
+    {
+      WiFi.begin(ssid.c_str(), wifi_password.c_str());
+    }
     int timeupCount = 0;
+
     while(WiFi.status() != WL_CONNECTED)
     {
       M5.update();
@@ -19,12 +22,16 @@ public:
       delay(500);
       M5.Lcd.print('.');  
       timeupCount++;
-        if( timeupCount > 30 || aborted) break;
+      if( timeupCount > 30 || aborted) break;
     }
+
     if(WiFi.status() == WL_CONNECTED)
     {
+      WiFi.setAutoReconnect(true);
       configTime(JST, 0, "ntp.nict.jp", "time.google.com", "ntp.jst.mfeed.ad.jp");
     }
+
+    Serial.println(WiFi.status());
     return WiFi.status() == WL_CONNECTED;
   }
   

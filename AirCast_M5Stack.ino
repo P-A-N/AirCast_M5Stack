@@ -15,12 +15,15 @@ int patchResponseCode;
 void setup(){
   // Initialize the M5Stack object
   M5.begin();
-  Serial.begin(115200);
+  //Serial.begin(115200);
+  delay(100);
+  Serial.println("setup start");
 
   //application and wifi config restore and connect to wifi
   _config.setup();
   //sensor setup(pin mode)
   _co2sensor.setup();
+  Serial.println("setup done");
 }
 
 // the loop routine runs over and over again forever 
@@ -40,6 +43,9 @@ void loop() {
     if( bSampling )
     {
       samplingResult = _co2sensor.sample(_cur_time, _config.voltage_adjust());
+      // int co2x100 = _co2sensor.getConcentration() * 100;
+      // Serial.print(0x20);//header
+      // Serial.print(co2x100);
       //M5.Lcd.clear(BLACK);
     }
     //draw stuffs
